@@ -5,10 +5,12 @@ Locale: "en" # Language file to load, currently the plugin comes with en and no,
 
 # AA Directors
 AADirectorDistance: 50 # Max range at which fireballs will be redirected
+AADirectorNodeDistance: 3 # See node directors
 AADirectorRange: 120 # Max range at which it will direct to a block vs in the general direction
 
 # Cannon Directors
 CannonDirectorDistance: 100 # Max range at which TNT will be redirected
+CannonDirectorNodeDistance: 3 # See node directors
 CannonDirectorRange: 120 # Max range at which it will direct to a block vs in the general direction
 
 # Directors
@@ -45,18 +47,19 @@ FireballLifespan: 6 # Lifespan of fireballs in seconds
 # TNT Tracers
 TracerRateTicks: 5.0 # Rate at which tracers are spawned on the path of flying TNT
 TracerMinDistance: 60 # Minimum distance at which glowstone tracers are spawned on explosion
-TracerExplosionDelayTicks: 20 #Delay for the tracer explosion to appear
-TracerDelayTicks: 5 #Delay for the tracers to appear
+TracerExplosionDelayTicks: 5 # Delay for the tracer explosion to appear
+TracerDelayTicks: 5 # Delay for the tracers to appear
+TracerBlock: COBWEB # Block to use for block tracers
+ExplosionBlock: GLOWSTONE # Block to use to indicate tracer explosions
 TracerParticles: FIREWORKS_SPARK # Particle to use for particle tracers  See https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html for options.
 ExplosionParticles: VILLAGER_ANGRY # Particle to use for particle tracer explosions
-TracerBlock: COBWEB #Block to use for block tracers
-TracerExplosionBlock: GLOWSTONE #Block to use to indicate tracer explosions
+
 
 ### Custom features
 
 # Damage Tracking
 EnableFireballTracking: false # Enable tracking and recording of fireballs (higher lag than other tracking methods)
-EnableTNTTracking: false # Enable tracking and recording of TNT damage (please read the wiki page before enabling!)
+EnableTNTTracking: false # Enable tracking and recording of TNT damage
 EnableTorpedoTracking: false # Enable tracking and recording of Torpedo damage
 DamageTimeout: 300 # Timeout for damages in seconds
 
