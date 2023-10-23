@@ -21,6 +21,7 @@ import java.util.Set;
 
 public class DurabilityOverride implements Listener {
     public static Map<Material, Integer> DurabilityOverride = null;
+    public static boolean EnableBleedFix = true;
 
     public static void load(@NotNull FileConfiguration config) {
         if (!config.contains("DurabilityOverride"))
@@ -29,6 +30,7 @@ public class DurabilityOverride implements Listener {
         if (section == null)
             return;
 
+        EnableBleedFix = config.getBoolean("EnableBleedFix", true);
         DurabilityOverride = new HashMap<>();
         for (var entry : section.getValues(false).entrySet()) {
             EnumSet<Material> materials = Tags.parseMaterials(entry.getKey());
@@ -55,7 +57,7 @@ public class DurabilityOverride implements Listener {
         Set<Block> removeList = new HashSet<>();
         for (Block b : e.blockList()) {
             // remove the block if no adjacent blocks are air (IE: the explosion skipped a block)
-            if (!nextToAir(b)) {
+            if (!nextToAir(b) && EnableBleedFix) {
                 removeList.add(b);
                 continue;
             }
