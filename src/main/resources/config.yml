@@ -34,6 +34,7 @@ ContactExplosivesMaxImpulseFactor: 10.0 # The maximum fraction of its velocity t
 ContactExplosivesMinImpulse: 0.35 # Minimum velocity for contact explosives to track a TNT entity
 
 # Durability Override
+EnableBleedFix: true # Ensures only surface blocks gets damaged by TNT
 DurabilityOverride: # List of block IDs: ignore percent
   END_STONE: 80
   END_STONE_BRICKS: 80
