@@ -2,6 +2,7 @@ package net.countercraft.movecraft.combat.features.directors;
 
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import net.countercraft.movecraft.MovecraftLocation;
+import net.countercraft.movecraft.combat.features.directors.events.CraftDirectEvent;
 import net.countercraft.movecraft.combat.features.tracking.DamageTracking;
 import net.countercraft.movecraft.combat.localisation.I18nSupport;
 import net.countercraft.movecraft.combat.utils.DirectorUtils;
@@ -11,6 +12,7 @@ import net.countercraft.movecraft.craft.PlayerCraft;
 import net.countercraft.movecraft.craft.SinkingCraft;
 import net.countercraft.movecraft.craft.type.CraftType;
 import net.countercraft.movecraft.craft.type.property.BooleanProperty;
+import net.countercraft.movecraft.util.ChatUtils;
 import net.countercraft.movecraft.util.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -110,6 +112,11 @@ public class CannonDirectors extends Directors implements Listener {
         if (p == null || p.getInventory().getItemInMainHand().getType() != Directors.DirectorTool)
             return;
 
+        CraftDirectEvent event = new CraftDirectEvent(c, p, this);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+
         // Store the speed to add it back in later, since all the values we will be using are "normalized", IE: have a speed of 1
         // We're only interested in the horizontal speed for now since that's all directors *should* affect.
         Vector tntVector = tnt.getVelocity();
@@ -134,6 +141,12 @@ public class CannonDirectors extends Directors implements Listener {
         tntVector = tntVector.multiply(horizontalSpeed); // put the original speed back in, but now along a different trajectory
         tntVector.setY(tnt.getVelocity().getY()); // you leave the original Y (or vertical axis) trajectory as it was
 
+        try {
+            tntVector.checkFinite();
+        }
+        catch (IllegalArgumentException ignored) {
+            return;
+        }
         tnt.setVelocity(tntVector);
     }
 
@@ -157,7 +170,6 @@ public class CannonDirectors extends Directors implements Listener {
         return c;
     }
 
-
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public final void onSignClick(@NotNull PlayerInteractEvent e) {
         var action = e.getAction();
@@ -175,7 +187,7 @@ public class CannonDirectors extends Directors implements Listener {
         if (!ChatColor.stripColor(sign.getLine(0)).equalsIgnoreCase(HEADER))
             return;
 
-
+        e.setCancelled(true);
         PlayerCraft foundCraft = null;
         for (Craft c : CraftManager.getInstance()) {
             if (!(c instanceof PlayerCraft))
@@ -203,7 +215,6 @@ public class CannonDirectors extends Directors implements Listener {
 
             removeDirector(p);
             p.sendMessage(I18nSupport.getInternationalisedString("CannonDirector - No Longer Directing"));
-            e.setCancelled(true);
             return;
         }
 

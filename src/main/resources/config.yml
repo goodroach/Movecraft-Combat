@@ -58,6 +58,8 @@ TracerExplosionBlock: GLOWSTONE #Block to use to indicate tracer explosions
 EnableFireballTracking: false # Enable tracking and recording of fireballs (higher lag than other tracking methods)
 EnableTNTTracking: false # Enable tracking and recording of TNT damage (please read the wiki page before enabling!)
 EnableTorpedoTracking: false # Enable tracking and recording of Torpedo damage
+DisableSinkingCraftTNT: true # Disable spawning of TNT from sinking crafts
+DisableDisabledCraftTNT: false # Disable spawning of TNT from disabled crafts
 DamageTimeout: 300 # Timeout for damages in seconds
 
 # Combat Release Tracking
@@ -83,6 +85,15 @@ SpecificParticle: COMPOSTER # Particle to use for specific movement tracer block
     # Note: The default is all moveBlocks of the craft type.
     #   You can override this by adding a list of specific blocks to the craft type as movementTracerBlocks.
 GeneralParticle: CRIT # Particle to use for general movement tracers.
+
+# Flammability overrides
+#FlammabilityOverride:
+#  obsidian:
+#    burnOddity: 20
+#    igniteOddity: 100
+#  stone:
+#    burnOddity: 20
+#    igniteOddity: 100
 
 # Blast Resistance Override
 BlastResistanceOverride:

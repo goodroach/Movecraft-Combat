@@ -41,6 +41,7 @@ public class FireballLifespan extends BukkitRunnable implements Listener {
     public void onProjectileLaunch(@NotNull ProjectileLaunchEvent e) {
         if (!(e.getEntity() instanceof SmallFireball))
             return;
+
         SmallFireball fireball = (SmallFireball) e.getEntity();
         fireball.setMetadata(METADATA_KEY, new FixedMetadataValue(MovecraftCombat.getInstance(), System.currentTimeMillis()));
         queue.add(fireball);

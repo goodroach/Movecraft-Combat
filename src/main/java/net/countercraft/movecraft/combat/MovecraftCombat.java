@@ -1,15 +1,9 @@
 package net.countercraft.movecraft.combat;
 
-import net.countercraft.movecraft.combat.features.AddFiresToHitbox;
-import net.countercraft.movecraft.combat.features.AntiRadar;
-import net.countercraft.movecraft.combat.features.BlastResistanceOverride;
-import net.countercraft.movecraft.combat.features.ContactExplosives;
-import net.countercraft.movecraft.combat.features.DurabilityOverride;
-import net.countercraft.movecraft.combat.features.FireballLifespan;
-import net.countercraft.movecraft.combat.features.FireballPenetration;
-import net.countercraft.movecraft.combat.features.ReImplementTNTTranslocation;
+import net.countercraft.movecraft.combat.features.*;
 import net.countercraft.movecraft.combat.features.combat.CombatRelease;
 import net.countercraft.movecraft.combat.features.directors.AADirectors;
+import net.countercraft.movecraft.combat.features.directors.ArrowDirectors;
 import net.countercraft.movecraft.combat.features.directors.CannonDirectors;
 import net.countercraft.movecraft.combat.features.directors.Directors;
 import net.countercraft.movecraft.combat.features.tracers.MovementTracers;
@@ -18,6 +12,7 @@ import net.countercraft.movecraft.combat.features.tracers.commands.MovementTrace
 import net.countercraft.movecraft.combat.features.tracers.commands.TNTTracerModeCommand;
 import net.countercraft.movecraft.combat.features.tracers.commands.TNTTracerSettingCommand;
 import net.countercraft.movecraft.combat.features.tracers.config.PlayerManager;
+import net.countercraft.movecraft.combat.features.BlockBehaviorOverride;
 import net.countercraft.movecraft.combat.features.tracking.DamageTracking;
 import net.countercraft.movecraft.combat.features.tracking.FireballTracking;
 import net.countercraft.movecraft.combat.features.tracking.TNTTracking;
@@ -40,6 +35,7 @@ public final class MovecraftCombat extends JavaPlugin {
     @Override
     public void onLoad() {
         AADirectors.register();
+        ArrowDirectors.register();
         CannonDirectors.register();
         MovementTracers.register();
     }
@@ -72,8 +68,9 @@ public final class MovecraftCombat extends JavaPlugin {
         CombatRelease.load(getConfig());
 
         Directors.load(getConfig());
-        CannonDirectors.load(getConfig());
         AADirectors.load(getConfig());
+        ArrowDirectors.load(getConfig());
+        CannonDirectors.load(getConfig());
 
         MovementTracers.load(getConfig());
         TNTTracers.load(getConfig());
@@ -87,13 +84,11 @@ public final class MovecraftCombat extends JavaPlugin {
         FireballLifespan.load(getConfig());
         FireballPenetration.load(getConfig());
         ReImplementTNTTranslocation.load(getConfig());
-        BlastResistanceOverride.load(getConfig());
-
+        BlockBehaviorOverride.load(getConfig());
 
         // Register event translation listeners
         getServer().getPluginManager().registerEvents(new CraftCollisionExplosionListener(), this);
         getServer().getPluginManager().registerEvents(new ExplosionListener(), this);
-
 
         // Register features
         var combatRelease = new CombatRelease();
@@ -103,6 +98,9 @@ public final class MovecraftCombat extends JavaPlugin {
         var aaDirectors = new AADirectors();
         getServer().getPluginManager().registerEvents(aaDirectors, this);
         aaDirectors.runTaskTimer(this, 0, 1); // Every tick
+        var arrowDirectors = new ArrowDirectors();
+        getServer().getPluginManager().registerEvents(arrowDirectors, this);
+        arrowDirectors.runTaskTimer(this, 0, 1); // Every tick
         var cannonDirectors = new CannonDirectors();
         getServer().getPluginManager().registerEvents(cannonDirectors, this);
         cannonDirectors.runTaskTimer(this, 0, 1); // Every tick
@@ -140,11 +138,11 @@ public final class MovecraftCombat extends JavaPlugin {
         getCommand("movementtracersetting").setExecutor(new MovementTracerSettingCommand(playerManager));
 
         // Modify blast resistances
-        BlastResistanceOverride.enable();
+        BlockBehaviorOverride.enable();
     }
 
     @Override
     public void onDisable() {
-        BlastResistanceOverride.disable(); // Revert to vanilla
+        BlockBehaviorOverride.disable(); // Revert to vanilla
     }
 }

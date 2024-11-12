@@ -1,12 +1,10 @@
 package net.countercraft.movecraft.combat.listener;
 
-import net.countercraft.movecraft.Movecraft;
 import net.countercraft.movecraft.MovecraftLocation;
 import net.countercraft.movecraft.combat.event.CollisionDamagePlayerCraftEvent;
 import net.countercraft.movecraft.combat.features.tracking.DamageTracking;
 import net.countercraft.movecraft.craft.Craft;
 import net.countercraft.movecraft.craft.CraftManager;
-import net.countercraft.movecraft.craft.CraftStatus;
 import net.countercraft.movecraft.craft.PilotedCraft;
 import net.countercraft.movecraft.craft.PlayerCraft;
 import net.countercraft.movecraft.events.CraftCollisionExplosionEvent;
@@ -26,17 +24,8 @@ public class CraftCollisionExplosionListener implements Listener {
     public void collisionExplosionListener(@NotNull CraftCollisionExplosionEvent e) {
         if (!DamageTracking.EnableTorpedoTracking)
             return;
-        if (!(e.getCraft() instanceof PilotedCraft))
+        if (!(e.getCraft() instanceof PilotedCraft damaging))
             return;
-
-        PilotedCraft damaging = (PilotedCraft) e.getCraft();
-
-        //check if the craft should sink
-        CraftStatus status = Movecraft.getInstance().getAsyncManager().checkCraftStatus(e.getCraft());
-        if (status.isSinking()) {
-            e.setCancelled(true);
-            CraftManager.getInstance().sink(e.getCraft());
-        }
 
         PlayerCraft damaged = fastNearestPlayerCraftToCraft(damaging);
         if (damaged == null)

@@ -10,13 +10,11 @@ import net.countercraft.movecraft.craft.PlayerCraft;
 import net.countercraft.movecraft.craft.type.CraftType;
 import net.countercraft.movecraft.craft.type.property.BooleanProperty;
 import net.countercraft.movecraft.util.MathUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.SmallFireball;
 import org.bukkit.event.EventHandler;
@@ -29,24 +27,24 @@ import org.jetbrains.annotations.NotNull;
 
 import static net.countercraft.movecraft.util.ChatUtils.ERROR_PREFIX;
 
-public class AADirectors extends Directors implements Listener {
-    public static final NamespacedKey ALLOW_AA_DIRECTOR_SIGN = new NamespacedKey("movecraft-combat", "allow_aa_director_sign");
-    private static final String HEADER = "AA Director";
-    public static int AADirectorDistance = 50;
-    public static int AADirectorRange = 120;
+public class ArrowDirectors extends Directors implements Listener {
+    public static final NamespacedKey ALLOW_ARROW_DIRECTOR_SIGN = new NamespacedKey("movecraft-combat", "allow_arrow_director_sign");
+    private static final String HEADER = "Arrow Director";
+    public static int ArrowDirectorDistance = 50;
+    public static int ArrowDirectorRange = 120;
     private long lastCheck = 0;
 
-    public AADirectors() {
+    public ArrowDirectors() {
         super();
     }
 
     public static void register() {
-        CraftType.registerProperty(new BooleanProperty("allowAADirectorSign", ALLOW_AA_DIRECTOR_SIGN, type -> true));
+        CraftType.registerProperty(new BooleanProperty("allowArrowDirectorSign", ALLOW_ARROW_DIRECTOR_SIGN, type -> true));
     }
 
     public static void load(@NotNull FileConfiguration config) {
-        AADirectorDistance = config.getInt("AADirectorDistance", 50);
-        AADirectorRange = config.getInt("AADirectorRange", 120);
+        ArrowDirectorDistance = config.getInt("ArrowDirectorDistance", 50);
+        ArrowDirectorRange = config.getInt("ArrowDirectorRange", 120);
     }
 
     @Override
@@ -56,22 +54,22 @@ public class AADirectors extends Directors implements Listener {
             return;
 
         for (World w : Bukkit.getWorlds()) {
-            if (w == null || w.getPlayers().size() == 0)
+            if (w == null || w.getPlayers().isEmpty())
                 continue;
 
-            var allFireballs = w.getEntitiesByClass(SmallFireball.class);
-            for (SmallFireball fireball : allFireballs)
-                processFireball(fireball);
+            var allArrows = w.getEntitiesByClass(Arrow.class);
+            for (Arrow arrow : allArrows)
+                processArrow(arrow);
         }
 
         lastCheck = System.currentTimeMillis();
     }
 
-    private void processFireball(@NotNull SmallFireball fireball) {
-        if (fireball.getShooter() instanceof org.bukkit.entity.LivingEntity)
+    private void processArrow(@NotNull Arrow arrow) {
+        if (arrow.getShooter() instanceof org.bukkit.entity.LivingEntity)
             return;
 
-        Craft c = MathUtils.fastNearestCraftToLoc(CraftManager.getInstance().getCrafts(), fireball.getLocation());
+        Craft c = MathUtils.fastNearestCraftToLoc(CraftManager.getInstance().getCrafts(), arrow.getLocation());
         if (!(c instanceof PlayerCraft) || !hasDirector((PlayerCraft) c))
             return;
 
@@ -80,10 +78,10 @@ public class AADirectors extends Directors implements Listener {
             return;
 
         MovecraftLocation midPoint = c.getHitBox().getMidPoint();
-        int distX = Math.abs(midPoint.getX() - fireball.getLocation().getBlockX());
-        int distY = Math.abs(midPoint.getY() - fireball.getLocation().getBlockY());
-        int distZ = Math.abs(midPoint.getZ() - fireball.getLocation().getBlockZ());
-        if (distX > AADirectorDistance || distY > AADirectorDistance || distZ > AADirectorDistance)
+        int distX = Math.abs(midPoint.getX() - arrow.getLocation().getBlockX());
+        int distY = Math.abs(midPoint.getY() - arrow.getLocation().getBlockY());
+        int distZ = Math.abs(midPoint.getZ() - arrow.getLocation().getBlockZ());
+        if (distX > ArrowDirectorDistance || distY > ArrowDirectorDistance || distZ > ArrowDirectorDistance)
             return;
 
         CraftDirectEvent event = new CraftDirectEvent(c, p, this);
@@ -91,52 +89,50 @@ public class AADirectors extends Directors implements Listener {
         if (event.isCancelled())
             return;
 
-        fireball.setShooter(p);
+        arrow.setShooter(p);
 
-        Vector fireballVector = fireball.getVelocity();
-        double speed = fireballVector.length() ; // store the speed to add it back in later, since all the values we will be using are "normalized", IE: have a speed of 1
-        fireballVector = fireballVector.normalize(); // you normalize it for comparison with the new direction to see if we are trying to steer too far
+        Vector arrowVector = arrow.getVelocity();
+        double speed = arrowVector.length(); // store the speed to add it back in later, since all the values we will be using are "normalized", IE: have a speed of 1
+        arrowVector = arrowVector.normalize(); // you normalize it for comparison with the new direction to see if we are trying to steer too far
 
-        Block targetBlock = DirectorUtils.getDirectorBlock(p, AADirectorRange);
+        Block targetBlock = DirectorUtils.getDirectorBlock(p, ArrowDirectorRange);
         Vector targetVector;
-
-        if (targetBlock == null || targetBlock.getType().isAir()) // the player is looking at nothing, shoot in that general direction
+        if (targetBlock == null || targetBlock.getType().equals(Material.AIR)) // the player is looking at nothing, shoot in that general direction
             targetVector = p.getLocation().getDirection();
         else { // shoot directly at the block the player is looking at (IE: with convergence)
-            targetVector = targetBlock.getLocation().toVector().subtract(fireball.getLocation().toVector());
+            targetVector = targetBlock.getLocation().toVector().subtract(arrow.getLocation().toVector());
             targetVector = targetVector.normalize();
         }
 
-        if (targetVector.getX() - fireballVector.getX() > 0.5)
-            fireballVector.setX(fireballVector.getX() + 0.5);
-        else if (targetVector.getX() - fireballVector.getX() < -0.5)
-            fireballVector.setX(fireballVector.getX() - 0.5);
+        if (targetVector.getX() - arrowVector.getX() > 0.5)
+            arrowVector.setX(arrowVector.getX() + 0.5);
+        else if (targetVector.getX() - arrowVector.getX() < -0.5)
+            arrowVector.setX(arrowVector.getX() - 0.5);
         else
-            fireballVector.setX(targetVector.getX());
+            arrowVector.setX(targetVector.getX());
 
-        if (targetVector.getY() - fireballVector.getY() > 0.5)
-            fireballVector.setY(fireballVector.getY() + 0.5);
-        else if (targetVector.getY() - fireballVector.getY() < -0.5)
-            fireballVector.setY(fireballVector.getY() - 0.5);
+        if (targetVector.getY() - arrowVector.getY() > 0.5)
+            arrowVector.setY(arrowVector.getY() + 0.5);
+        else if (targetVector.getY() - arrowVector.getY() < -0.5)
+            arrowVector.setY(arrowVector.getY() - 0.5);
         else
-            fireballVector.setY(targetVector.getY());
+            arrowVector.setY(targetVector.getY());
 
-        if (targetVector.getZ() - fireballVector.getZ() > 0.5)
-            fireballVector.setZ(fireballVector.getZ() + 0.5);
-        else if (targetVector.getZ() - fireballVector.getZ() < -0.5)
-            fireballVector.setZ(fireballVector.getZ() - 0.5);
+        if (targetVector.getZ() - arrowVector.getZ() > 0.5)
+            arrowVector.setZ(arrowVector.getZ() + 0.5);
+        else if (targetVector.getZ() - arrowVector.getZ() < -0.5)
+            arrowVector.setZ(arrowVector.getZ() - 0.5);
         else
-            fireballVector.setZ(targetVector.getZ());
+            arrowVector.setZ(targetVector.getZ());
 
-        fireballVector = fireballVector.multiply(speed); // put the original speed back in, but now along a different trajectory
+        arrowVector = arrowVector.multiply(speed); // put the original speed back in, but now along a different trajectory
         try {
-            fireballVector.checkFinite();
+            arrowVector.checkFinite();
         }
         catch (IllegalArgumentException ignored) {
             return;
         }
-        fireball.setVelocity(fireballVector);
-        fireball.setDirection(fireballVector);
+        arrow.setVelocity(arrowVector);
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -173,8 +169,8 @@ public class AADirectors extends Directors implements Listener {
             return;
         }
 
-        if (!foundCraft.getType().getBoolProperty(ALLOW_AA_DIRECTOR_SIGN)) {
-            p.sendMessage(ERROR_PREFIX + " " + I18nSupport.getInternationalisedString("AADirector - Not Allowed On Craft"));
+        if (!foundCraft.getType().getBoolProperty(ALLOW_ARROW_DIRECTOR_SIGN)) {
+            p.sendMessage(ERROR_PREFIX + " " + I18nSupport.getInternationalisedString("ArrowDirector - Not Allowed On Craft"));
             return;
         }
 
@@ -183,12 +179,12 @@ public class AADirectors extends Directors implements Listener {
                 return;
 
             removeDirector(p);
-            p.sendMessage(I18nSupport.getInternationalisedString("AADirector - No Longer Directing"));
+            p.sendMessage(I18nSupport.getInternationalisedString("ArrowDirector - No Longer Directing"));
             return;
         }
 
         clearDirector(p);
         addDirector(foundCraft, p);
-        p.sendMessage(I18nSupport.getInternationalisedString("AADirector - Directing"));
+        p.sendMessage(I18nSupport.getInternationalisedString("ArrowDirector - Directing"));
     }
 }

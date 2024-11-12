@@ -24,7 +24,7 @@ public class MovementTracerSettingCommand implements TabExecutor {
 
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String label, String[] args) {
         if(!command.getName().equalsIgnoreCase("movementtracersetting"))
             return false;
 
@@ -35,7 +35,7 @@ public class MovementTracerSettingCommand implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(args.length == 0) {
-            commandSender.sendMessage(MOVECRAFT_COMMAND_PREFIX + I18nSupport.getInternationalisedString("Command - Current Setting") + ": " + manager.getTNTSetting(player));
+            commandSender.sendMessage(MOVECRAFT_COMMAND_PREFIX + I18nSupport.getInternationalisedString("Command - Current Setting") + ": " + manager.getMovementSetting(player));
             return true;
         }
         if (args.length != 1) {
@@ -56,7 +56,7 @@ public class MovementTracerSettingCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String @NotNull [] strings) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, String[] strings) {
         final List<String> tabCompletions = new ArrayList<>();
         if (strings.length <= 1) {
             tabCompletions.add("OFF");
